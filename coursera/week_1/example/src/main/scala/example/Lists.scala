@@ -45,6 +45,7 @@ object Lists {
    * @throws java.util.NoSuchElementException if `xs` is an empty list
    */
     def max(xs: List[Int]): Int = {
+      val max = xs.head
       def inner(xs: List[Int], max: Int): Int = {
         if (xs.isEmpty) max
         else {
@@ -52,6 +53,6 @@ object Lists {
           else inner(xs.tail, max)
         }
       }
-      inner(xs, -99999)
+      inner(xs, max)
     }
   }
