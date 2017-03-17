@@ -56,17 +56,14 @@ Testing
 
 1. Automated via `travis`
 
-  This is configured to use travis to automatically run tests.
-  Simply add the filepath to the root of each sbt project dir as a `TEST_SUITE` `env` in `.travis.yml`.
-  It is recommended to comment assignments out if you are not actively working on them to save build time.
+    This is configured to use travis to automatically run tests.
+    Simply add the filepath to the root of each sbt project dir as a `TEST_SUITE` `env` in `.travis.yml`.
 
-  ```
-  env:
-    - TEST_SUITE=week_1/example
-    - TEST_SUITE=week_2/stackoverflow
-  ```
-
-1. You can also run `ci/test.sh week_1/example` to run a given assignment's tests locally.
+    ```
+    env:
+      - TEST_SUITE=coursera/week_1/example
+      - TEST_SUITE=coursera/week_2/stackoverflow
+    ```
 
 1. Test interactively in the container with `test` inside the `sbt` console or `sbt test` in the container's `bash` prompt.
 

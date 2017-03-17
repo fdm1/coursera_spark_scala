@@ -5,7 +5,10 @@ import java.io.File
 object WikipediaData {
 
   private[wikipedia] def filePath = {
-    new File(this.getClass.getClassLoader.getResource("wikipedia/wikipedia.dat").toURI).getPath
+    if (sys.env.contains("TEST_SUITE") && sys.env("TEST_SUITE").contains("wikipedia"))
+      new File(this.getClass.getClassLoader.getResource("wikipedia/test_stub_file").toURI).getPath
+    else
+      new File(this.getClass.getClassLoader.getResource("wikipedia/wikipedia.dat").toURI).getPath
   }
 
   private[wikipedia] def parse(line: String): WikipediaArticle = {
