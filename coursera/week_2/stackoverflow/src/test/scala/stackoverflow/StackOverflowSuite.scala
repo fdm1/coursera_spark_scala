@@ -27,6 +27,11 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
     override def kmeansMaxIterations = 120
   }
 
+  override def afterAll(): Unit = {
+    import StackOverflow._
+    sc.stop()
+  }
+
   test("testObject can be instantiated") {
     val instantiatable = try {
       testObject
@@ -35,6 +40,53 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
       case _: Throwable => false
     }
     assert(instantiatable, "Can't instantiate a StackOverflow object")
+  }
+
+
+  def samplePostings(): List[String] = {
+    List("1,27233496,,,0,C#",
+         "1,5484340,,,0,C#",
+         "2,5494879,,5484340,1,",
+         "1,9419744,,,2,Objective-C",
+         "1,9002525,,,2,C++",
+         "2,9003401,,9002525,4,",
+         "2,9005311,,9002525,0,",
+         "1,5257894,,,1,Java",
+         "1,21984912,,,0,Java",
+         "2,21985273,,21984912,0,")
+  }
+
+
+  test("'rawPostings' should convert strings into 'Postings'") {
+    import StackOverflow._
+    val lines = sc.parallelize(samplePostings)
+    val raw = rawPostings(lines)
+
+    val expectedPosting = Posting(1,27233496,None,None,0,Some("C#"))
+    val res = (raw.take(1)(0) == expectedPosting)
+    assert(res, "rawPosting given samplePostings first value does not equal expected Posting")
+  }
+
+
+  test("'groupPostings' should create a grouped RDD of (K: posting ID, V: (question, Iterable[answers]))") {
+    import StackOverflow._
+    val lines = sc.parallelize(samplePostings)
+    val raw = rawPostings(lines)
+    val grouped = groupedPostings(raw)
+
+    val sampleId = 9002525
+    val expectedGroupRecord = List(
+                                (Posting(1,9002525,None,None,2,Some("C++")),
+                                 Posting(2,9003401,None,Some(9002525),4,None)),
+                                (Posting(1,9002525,None,None,2,Some("C++")),
+                                 Posting(2,9005311,None,Some(9002525),0,None))
+                             )
+
+    val resultGroupedRecord = grouped.filter(_._1 == sampleId).collect()(0)
+    val res1 = resultGroupedRecord._1 == sampleId
+    val res2 = resultGroupedRecord._2.toList == expectedGroupRecord
+    assert(res1, "result from groupedPostings did not have the correct ID")
+    assert(res2, "result grouping from groupedPostings was not the correct (question, answer) pairs")
   }
 
 
