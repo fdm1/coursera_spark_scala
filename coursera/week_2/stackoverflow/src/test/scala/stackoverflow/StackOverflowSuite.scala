@@ -115,4 +115,31 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
     assert(count_res, "result from scoredPostings did not have the correct number of records")
   }
 
+  test("'vectorPostings' should return the vectored langauge and top score in prep for kmeans") {
+    import StackOverflow._
+    sc.setLogLevel("INFO")
+    val lines = sc.parallelize(samplePostings)
+    val raw = rawPostings(lines)
+    val grouped = groupedPostings(raw)
+    val scored = scoredPostings(grouped)
+    val vectors = vectorPostings(scored)
+
+    val expected = Array(
+      (250000,4),
+      (200000,1),
+      (50000,0)
+    )
+
+    val vector_results = vectors.collect
+
+    vector_results.foreach {
+      row => {
+        val res = expected.contains(row)
+        assert(res, "vectorPostings result did not contain expected results")
+      }
+    }
+
+    val count_res = vector_results.size == expected.size
+    assert(count_res, "result from vectorPostings did not have the correct number of records")
+  }
 }

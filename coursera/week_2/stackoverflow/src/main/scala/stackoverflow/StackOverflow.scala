@@ -123,8 +123,9 @@ class StackOverflow extends Serializable {
         }
       }
     }
-
-    ???
+    scored.map{
+      case(posting, high_score) =>
+        (firstLangInTag(posting.tags, langs).get * langSpread, high_score) }
   }
 
 
