@@ -89,5 +89,30 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
     assert(res2, "result grouping from groupedPostings was not the correct (question, answer) pairs")
   }
 
+  test("'scoredPostings' should return the top score for each question") {
+    import StackOverflow._
+    val lines = sc.parallelize(samplePostings)
+    val raw = rawPostings(lines)
+    val grouped = groupedPostings(raw)
+    val scored = scoredPostings(grouped)
+
+    val expected = Array(
+         (Posting(1,5484340,None,None,0,Some("C#")), 1),
+         (Posting(1,9002525,None,None,2,Some("C++")), 4),
+         (Posting(1,21984912,None,None,0,Some("Java")), 0)
+    )
+
+    val scored_results = scored.collect
+
+    scored_results.foreach {
+      row => {
+        val res = expected.contains(row)
+        assert(res, "scoredPostings result did not contain expected results")
+      }
+    }
+
+    val count_res = scored_results.size == expected.size
+    assert(count_res, "result from scoredPostings did not have the correct number of records")
+  }
 
 }

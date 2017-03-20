@@ -16,6 +16,7 @@ object StackOverflow extends StackOverflow {
 
   @transient lazy val conf: SparkConf = new SparkConf().setMaster("local").setAppName("StackOverflow")
   @transient lazy val sc: SparkContext = new SparkContext(conf)
+  sc.setLogLevel("ERROR")
 
   /** Main function */
   def main(args: Array[String]): Unit = {
@@ -83,7 +84,7 @@ class StackOverflow extends Serializable {
     val questionAndAnswersRdd: RDD[(Int, (Posting, Posting))] = questionsRdd.join(answersRdd)
 
     questionAndAnswersRdd.groupByKey
-}
+  }
 
 
   /** Compute the maximum score for each posting */
@@ -101,7 +102,9 @@ class StackOverflow extends Serializable {
       highScore
     }
 
-    ???
+    grouped.map{ case(k, v) => v.head }
+           .groupByKey
+           .map{ case(k, v) => (k, answerHighScore(v.toArray)) }
   }
 
 
