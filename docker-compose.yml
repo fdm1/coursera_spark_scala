@@ -24,6 +24,8 @@ services:
       - 8080:8080
     volumes:
       - ./coursera:/coursera
+      - ./.sbt:/root/.sbt
+      - ./.ivy2:/root/.ivy2
   worker:
     image: fdm1/spark_scala
     command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://master:7077
@@ -32,7 +34,7 @@ services:
       CONF_DIR: /conf
       WORKER_CORES: 2
       WORKER_MEMORY: 1g
-      WORKER_PORT: 8881
+      WORKER_PORT: 8882
       WORKER_WEBUI_PORT: 8081
       PUBLIC_DNS: localhost
     links:
@@ -48,3 +50,5 @@ services:
       - 8081
     volumes:
       - ./coursera:/coursera
+      - ./.sbt:/root/.sbt
+      - ./.ivy2:/root/.ivy2

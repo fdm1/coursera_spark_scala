@@ -11,6 +11,9 @@ lib_managed/
 src_managed/
 project/boot/
 project/plugins/project/
+.sbt/*/
+.ivy2/cache/
+.ivy2/*.lock
 
 # Scala-IDE specific
 .scala_dependencies
@@ -18,3 +21,5 @@ project/plugins/project/
 
 *.dat
 *.csv
+
+

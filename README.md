@@ -47,8 +47,6 @@ I have just been working in a tmux with the source code on one side, and the wor
 
 - If in the scala console and you've spun up a `SparkContext`, be sure to run `sc.stop` before `:q` to stop it.
   (It just results in annoying persistent warnings/errors if you don't until you exit to `bash`)
-- If you run `docker-compose down`, it will remove the container, and the next time you start working, `sbt` will be slow.
-  Don't run this unless you mean to.
 
 
 Testing
