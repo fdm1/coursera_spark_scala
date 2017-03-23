@@ -1,5 +1,6 @@
 package stackoverflow
 
+import StackOverflow._
 import org.scalatest.{FunSuite, BeforeAndAfterAll}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -28,7 +29,6 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
   }
 
   override def afterAll(): Unit = {
-    import StackOverflow._
     sc.stop()
   }
 
@@ -48,6 +48,8 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
          "1,5484340,,,0,C#",
          "2,5494879,,5484340,1,",
          "1,9419744,,,2,Objective-C",
+         "1,9002524,,,2,,",
+         "2,9003401,,9002524,4,",
          "1,9002525,,,2,C++",
          "2,9003401,,9002525,4,",
          "2,9005311,,9002525,0,",
@@ -58,7 +60,6 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
 
 
   test("'rawPostings' should convert strings into 'Postings'") {
-    import StackOverflow._
     val lines = sc.parallelize(samplePostings)
     val raw = rawPostings(lines)
 
@@ -69,7 +70,6 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
 
 
   test("'groupPostings' should create a grouped RDD of (K: posting ID, V: (question, Iterable[answers]))") {
-    import StackOverflow._
     val lines = sc.parallelize(samplePostings)
     val raw = rawPostings(lines)
     val grouped = groupedPostings(raw)
@@ -90,7 +90,6 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
   }
 
   test("'scoredPostings' should return the top score for each question") {
-    import StackOverflow._
     val lines = sc.parallelize(samplePostings)
     val raw = rawPostings(lines)
     val grouped = groupedPostings(raw)
@@ -116,8 +115,6 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
   }
 
   test("'vectorPostings' should return the vectored langauge and top score in prep for kmeans") {
-    import StackOverflow._
-    sc.setLogLevel("INFO")
     val lines = sc.parallelize(samplePostings)
     val raw = rawPostings(lines)
     val grouped = groupedPostings(raw)

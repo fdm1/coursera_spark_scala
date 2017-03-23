@@ -79,11 +79,12 @@ class StackOverflow extends Serializable {
 
   /** Group the questions and answers together */
   def groupedPostings(postings: RDD[Posting]): RDD[(Int, Iterable[(Posting, Posting)])] = {
-    val questionsRdd: RDD[(Int, Posting)] = postings.filter(_.postingType == 1).map(post => (post.id, post))
-    val answersRdd: RDD[(Int, Posting)] = postings.filter(_.postingType == 2).map(post => (post.parentId.get, post))
-    val questionAndAnswersRdd: RDD[(Int, (Posting, Posting))] = questionsRdd.join(answersRdd)
+    val questionsRdd = postings.filter(_.postingType == 1)
+                               .filter(_.tags.nonEmpty)
+                               .map(post => (post.id, post))
+    val answersRdd = postings.filter(_.postingType == 2).map(post => (post.parentId.get, post))
 
-    questionAndAnswersRdd.groupByKey
+    questionsRdd.join(answersRdd).groupByKey
   }
 
 
@@ -102,9 +103,7 @@ class StackOverflow extends Serializable {
       highScore
     }
 
-    grouped.map{ case(k, v) => v.head }
-           .groupByKey
-           .map{ case(k, v) => (k, answerHighScore(v.toArray)) }
+    grouped.values.map(v => (v.head._1, answerHighScore(v.map(_._2).toArray)))
   }
 
 
@@ -123,9 +122,7 @@ class StackOverflow extends Serializable {
         }
       }
     }
-    scored.map{
-      case(posting, high_score) =>
-        (firstLangInTag(posting.tags, langs).get * langSpread, high_score) }
+    scored.map(posting => (firstLangInTag(posting._1.tags, langs).get * langSpread, posting._2))
   }
 
 
@@ -182,12 +179,8 @@ class StackOverflow extends Serializable {
   @tailrec final def kmeans(means: Array[(Int, Int)], vectors: RDD[(Int, Int)], iter: Int = 1, debug: Boolean = false): Array[(Int, Int)] = {
     val newMeans = means.clone() // you need to compute newMeans
 
-    val newMeanArray = vectors.map(p => (findClosest(p, means), p))
-                              .groupByKey
-                              .map{ case(idx, points) =>
-                                 (idx, averageVectors(points)) }
-                              .collect
-    newMeanArray.map{ case (idx, mean) => newMeans.update(idx, mean) }
+    val closestMeans = vectors.groupBy(findClosest(_,means)).mapValues(averageVectors(_))
+    closestMeans.collect.map{ case (idx, mean) => newMeans.update(idx, mean) }
 
     val distance = euclideanDistance(means, newMeans)
 
