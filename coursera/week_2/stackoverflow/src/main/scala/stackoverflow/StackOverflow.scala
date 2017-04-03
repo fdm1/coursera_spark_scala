@@ -121,8 +121,8 @@ class StackOverflow extends Serializable {
         }
       }
     }
-    val vectors = scored.map(posting => (firstLangInTag(posting._1.tags, langs), posting._2))
-                        .filter(t => t._1.nonEmpty)
+    val vectors = scored.filter(t => t._1.tags.nonEmpty)
+                        .map(posting => (firstLangInTag(posting._1.tags, langs), posting._2))
                         .map(t => (t._1.get * langSpread, t._2))
     vectors.persist()
   }

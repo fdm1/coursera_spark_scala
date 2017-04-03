@@ -98,7 +98,8 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
     val expected = Array(
          (Posting(1,5484340,None,None,0,Some("C#")), 1),
          (Posting(1,9002525,None,None,2,Some("C++")), 4),
-         (Posting(1,21984912,None,None,0,Some("Java")), 0)
+         (Posting(1,21984912,None,None,0,Some("Java")), 0),
+         (Posting(1,9002524,None,None,2,None),4)
     )
 
     val scored_results = scored.collect
