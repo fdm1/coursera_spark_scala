@@ -25,7 +25,7 @@ object StackOverflow extends StackOverflow {
     val raw     = rawPostings(lines)
     val grouped = groupedPostings(raw)
     val scored  = scoredPostings(grouped)
-    val vectors = vectorPostings(scored).persist()
+    val vectors = vectorPostings(scored)
 //    assert(vectors.count() == 2121822, "Incorrect number of vectors: " + vectors.count())
 
     val means   = kmeans(sampleVectors(vectors), vectors, debug = true)
@@ -79,10 +79,8 @@ class StackOverflow extends Serializable {
 
   /** Group the questions and answers together */
   def groupedPostings(postings: RDD[Posting]): RDD[(Int, Iterable[(Posting, Posting)])] = {
-    val questionsRdd = postings.filter(_.postingType == 1)
-                               .filter(_.tags.nonEmpty)
-                               .map(post => (post.id, post))
-    val answersRdd = postings.filter(_.postingType == 2).map(post => (post.parentId.get, post))
+    val questionsRdd = postings.filter(p => p.postingType == 1).map(q => (q.id, q))
+    val answersRdd = postings.filter(p => p.postingType == 2).map(a => (a.parentId.get, a))
 
     questionsRdd.join(answersRdd).groupByKey
   }
@@ -103,7 +101,8 @@ class StackOverflow extends Serializable {
       highScore
     }
 
-    grouped.values.map(v => (v.head._1, answerHighScore(v.map(_._2).toArray)))
+    grouped.values.map(v => (v.head._1, v.map(_._2)))
+                  .map(t => (t._1, answerHighScore(t._2.toArray)))
   }
 
 
@@ -122,7 +121,10 @@ class StackOverflow extends Serializable {
         }
       }
     }
-    scored.map(posting => (firstLangInTag(posting._1.tags, langs).get * langSpread, posting._2))
+    val vectors = scored.map(posting => (firstLangInTag(posting._1.tags, langs), posting._2))
+                        .filter(t => t._1.nonEmpty)
+                        .map(t => (t._1.get * langSpread, t._2))
+    vectors.persist()
   }
 
 
@@ -179,8 +181,8 @@ class StackOverflow extends Serializable {
   @tailrec final def kmeans(means: Array[(Int, Int)], vectors: RDD[(Int, Int)], iter: Int = 1, debug: Boolean = false): Array[(Int, Int)] = {
     val newMeans = means.clone() // you need to compute newMeans
 
-    val closestMeans = vectors.groupBy(findClosest(_,means)).mapValues(averageVectors(_))
-    closestMeans.collect.map{ case (idx, mean) => newMeans.update(idx, mean) }
+    val closestMeans = vectors.groupBy(findClosest(_,means)).mapValues(averageVectors(_)).collect
+    closestMeans.foreach{ case (i, mean) => newMeans.update(i, mean) }
 
     val distance = euclideanDistance(means, newMeans)
 
@@ -268,11 +270,10 @@ class StackOverflow extends Serializable {
   }
 
 
-
-
-
-  def mostCommonLang(points: Iterable[(Int, Int)]): Int = {
-    points.groupBy(_._1).map{ case(k,v) => (k, v.size)}.maxBy(_._2)._1
+  def getMedianScore(scores: Array[Int]): Int = {
+    val mid = scores.size / 2
+    if (scores.size % 2 == 0) (scores(mid) + scores(mid - 1)) / 2
+    else scores(mid) / 2
   }
   //
   //
@@ -284,14 +285,12 @@ class StackOverflow extends Serializable {
     val closestGrouped = closest.groupByKey()
 
     val median = closestGrouped.mapValues { vs =>
-      val langValue: Int      = mostCommonLang(vs)
-      val langLabel: String   = langs(langValue/langSpread) // most common language in the cluster
-      val langSize: Int       = vs.filter(_._1 == langValue).size
+      val langLabel: String   = langs(vs.groupBy(pair => pair._1).map(pair => (pair._1, pair._2.size))
+                                                                 .maxBy(pair => pair._1)._1 / langSpread)
+      val langPercent: Double = vs.map(_._1).filter(_ == langs.indexOf(langLabel)*langSpread).size * 100 /vs.size
+      // percent of the questions in the most common language
       val clusterSize: Int    = vs.size
-      val langPercent: Double = langSize / clusterSize * 100 // percent of the questions in the most common language
-      val sortedScores: Array[Int] = vs.map(_._2).toArray.sorted
-      val medianScore: Int    = sortedScores(sortedScores.size/2)
-
+      val medianScore: Int    = getMedianScore(vs.map(_._2).toArray.sorted)
       (langLabel, langPercent, clusterSize, medianScore)
     }
 
