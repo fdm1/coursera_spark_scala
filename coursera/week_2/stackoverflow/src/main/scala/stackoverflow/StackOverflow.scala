@@ -273,7 +273,7 @@ class StackOverflow extends Serializable {
   def getMedianScore(scores: Array[Int]): Int = {
     val mid = scores.size / 2
     if (scores.size % 2 == 0) (scores(mid) + scores(mid - 1)) / 2
-    else scores(mid) / 2
+    else scores(mid)
   }
   //
   //

@@ -140,4 +140,10 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
     val count_res = vector_results.size == expected.size
     assert(count_res, "result from vectorPostings did not have the correct number of records")
   }
+
+  test("'getMedianScore' should return the median") {
+    val cases = List((Array(1,2,3), 2),
+                     (Array(1,2,3,4),2))
+    cases.foreach(c => assert(getMedianScore(c._1) == c._2, "'getMedianScore' did not return the correct median value"))
+  }
 }
