@@ -4,6 +4,7 @@ env:
   - TEST_SUITE=coursera/week_1/example
   - TEST_SUITE=coursera/week_1/wikipedia
   - TEST_SUITE=coursera/week_2/stackoverflow
+  - TEST_SUITE=coursera/week_4/timeusage
 
 
 # Use container-based infrastructure

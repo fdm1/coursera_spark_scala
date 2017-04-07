@@ -20,6 +20,6 @@ project/plugins/project/
 .worksheet
 
 *.dat
-*.csv
+**/main/**/*.csv
 
 

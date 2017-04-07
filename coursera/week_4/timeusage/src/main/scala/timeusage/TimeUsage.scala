@@ -5,6 +5,25 @@ import java.nio.file.Paths
 import org.apache.spark.sql._
 import org.apache.spark.sql.types._
 
+/** Paraphrased assignment
+ *  - Read the header row, translate into schema structure (string and then all doubles)
+ *  - map ages to young (<22), adult, elderly (>55)
+ *  - map activities to primary needs, work, and other
+ *    - primary needs == “t01”, “t03”, “t11”, “t1801” and “t1803”
+ *    - working == “t05” and “t1805”
+ *    - other == “t02”, “t04”, “t06”, “t07”, “t08”, “t09”, “t10”, “t12”, “t13”, “t14”, “t15”, “t16” and “t18” (everything else)
+ *  - summarize data - aggregate into 6 columns
+ *      - working status
+ *      - gender
+ *      - age
+ *      - primary time
+ *      - work time
+ *      - other time
+ *  - filter out unemployable people
+ *  - get average time per activity per working status/age group/gender
+ *    - round "with a scale of 1"???
+*/
+
 /** Main class */
 object TimeUsage {
 
@@ -62,15 +81,20 @@ object TimeUsage {
     *         have type Double. None of the fields are nullable.
     * @param columnNames Column names of the DataFrame
     */
-  def dfSchema(columnNames: List[String]): StructType =
-    ???
+  def dfSchema(columnNames: List[String]): StructType = {
+    val firstCol = columnNames(0)
+    val structFields = columnNames.map { column =>
+      if (column == firstCol) StructField(column,StringType,false)
+      else StructField(column,DoubleType,false)
+    }
+    StructType(structFields)
+  }
 
 
   /** @return An RDD Row compatible with the schema produced by `dfSchema`
     * @param line Raw fields
     */
-  def row(line: List[String]): Row =
-    ???
+  def row(line: List[String]): Row = Row.fromSeq(List(List(line.head), line.tail.map(i => i.toDouble)).flatten)
 
   /** @return The initial data frame columns partitioned in three groups: primary needs (sleeping, eating, etc.),
     *         work and other (leisure activities)
