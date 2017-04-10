@@ -37,6 +37,8 @@ object TimeUsage {
       .config("spark.master", "local")
       .getOrCreate()
 
+  spark.sparkContext.setLogLevel("WARN")
+
   // For implicit conversions like converting RDDs to DataFrames
   import spark.implicits._
 
@@ -111,9 +113,29 @@ object TimeUsage {
     * 3. other activities (leisure). These are the columns starting with “t02”, “t04”, “t06”, “t07”, “t08”, “t09”,
     *    “t10”, “t12”, “t13”, “t14”, “t15”, “t16” and “t18” (those which are not part of the previous groups only).
     */
+
   def classifiedColumns(columnNames: List[String]): (List[Column], List[Column], List[Column]) = {
-    ???
+    val PRIMARY_COLUMNS = List("t01", "t03", "t11", "t1801", "t1803")
+    val WORKING_COLUMNS = List("t05", "t1805")
+
+    def colInList(colName: String, colList: List[String]): Boolean = {
+      colList.contains(colName.take(2)) ||  // digits filter
+      colList.contains(colName.take(3)) ||  // tXX
+      colList.contains(colName.take(5))     // tXXXXX
+    }
+
+    def toCol(l: List[String]): List[Column] = l.map(s => col(s))
+
+    val digits = "0123456789".split("").tail.map(d => s"t$d").toList
+    val digitColumns = columnNames.filter(c => colInList(c,digits))
+
+    val primaryColumns = digitColumns.filter(c => colInList(c, PRIMARY_COLUMNS))
+    val workingColumns = digitColumns.filter(c => colInList(c, WORKING_COLUMNS))
+    val otherColumns = digitColumns.filter(c => !primaryColumns.contains(c) && !workingColumns.contains(c))
+    assert(primaryColumns.size + workingColumns.size + otherColumns.size == digitColumns.size)
+    (toCol(primaryColumns), toCol(workingColumns), toCol(otherColumns))
   }
+
 
   /** @return a projection of the initial DataFrame such that all columns containing hours spent on primary needs
     *         are summed together in a single column (and same for work and leisure). The “teage” column is also

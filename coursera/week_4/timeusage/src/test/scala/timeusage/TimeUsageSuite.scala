@@ -1,6 +1,7 @@
 package timeusage
 
 import org.apache.spark.sql.{ColumnName, DataFrame, Row}
+import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types.{
   DoubleType,
   StringType,
@@ -59,6 +60,19 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
                                     , 3.asInstanceOf[Double]
                                     , 4.asInstanceOf[Double]))
       assert(row(vals) == res)
+    }
+
+    test("'classifiedColumns' correctly sorts activity columns") {
+      val columnsToSort = List("tfoo", "tbar",
+                               "t01234", "t01439", "t0398", "t112321", "t180132", "t180313",
+                               "t05237498", "t05132", "t1805123", "t18059",
+                               "t9999","t1234")
+      val (a,b,c) = classifiedColumns(columnsToSort)
+
+      assert(a == List("t01234", "t01439", "t0398", "t112321", "t180132", "t180313").map(c => col(c)))
+      assert(b == List("t05237498", "t05132", "t1805123", "t18059").map(c => col(c)))
+      assert(c == List("t9999","t1234").map(c => col(c)))
+
     }
 
 }
