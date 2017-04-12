@@ -72,7 +72,28 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
       assert(a == List("t01234", "t01439", "t0398", "t112321", "t180132", "t180313").map(c => col(c)))
       assert(b == List("t05237498", "t05132", "t1805123", "t18059").map(c => col(c)))
       assert(c == List("t9999","t1234").map(c => col(c)))
-
     }
 
+    test("'timeUsageSummary' aggregates all activites by age, gender, and employment") {
+      val (columns, initDf) = read("/timeusage/atussum.csv")
+      val (primaryNeedsColumns, workColumns, otherColumns) = classifiedColumns(columns)
+      val summaryDf = timeUsageSummary(primaryNeedsColumns, workColumns, otherColumns, initDf)
+      val expectedRows =
+        Array(
+          Row("working","female","elder", 2.0/30, 1.0/12, 7.0/60),
+          Row("working","female","young", 2.0/15, 1.0/12, 15.0/100),
+          Row("working","female","young", 1.0/10, 1.0/12, 13.0/60),
+          Row("working","male","active", 1.0/60, 1.0/12, 1.0/4),
+          Row("working","male","active", 1.0/12, 1.0/12, 1.0/5),
+          Row("working","female","active", 2.0/30, 1.0/12, 13.0/60),
+          Row("working","male","young", 1.0/5, 1.0/12, 11.0/60),
+          Row("working","male","active", 7.0/60, 1.0/12, 13.0/60)
+        )
+
+      val summaryRows = summaryDf.collect
+
+      assert(summaryRows.size == expectedRows.size)
+
+      for (row <- expectedRows) { assert(summaryRows.contains(row)) }
+    }
 }
