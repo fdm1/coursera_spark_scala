@@ -202,9 +202,9 @@ object TimeUsage {
           .select($"working",
                   $"sex",
                   $"age",
-                  round($"avg(primaryNeeds)")as("primaryNeeds"),
-                  round($"avg(work)")as("work"),
-                  round($"avg(other)")as("other"))
+                  round($"avg(primaryNeeds)", 1).as("primaryNeeds"),
+                  round($"avg(work)", 1).as("work"),
+                  round($"avg(other)", 1).as("other"))
           .sort($"working", $"sex", $"age")
   }
 
@@ -227,9 +227,9 @@ object TimeUsage {
       working,
       sex,
       age,
-      round(avg(primaryNeeds)) as primaryNeeds,
-      round(avg(work)) as work,
-      round(avg(other)) as other
+      round(avg(primaryNeeds), 1) as primaryNeeds,
+      round(avg(work), 1) as work,
+      round(avg(other), 1) as other
     from $viewName
     group by working, sex, age
     order by working, sex, age
@@ -259,9 +259,9 @@ object TimeUsage {
   def timeUsageGroupedTyped(summed: Dataset[TimeUsageRow]): Dataset[TimeUsageRow] = {
     import org.apache.spark.sql.expressions.scalalang.typed
     summed.groupByKey(r => (r.working, r.sex, r.age))
-          .agg(round(typed.avg[TimeUsageRow](_.primaryNeeds)).as[Double],
-               round(typed.avg[TimeUsageRow](_.work)).as[Double],
-               round(typed.avg[TimeUsageRow](_.other)).as[Double])
+          .agg(round(typed.avg[TimeUsageRow](_.primaryNeeds), 1).as[Double],
+               round(typed.avg[TimeUsageRow](_.work), 1).as[Double],
+               round(typed.avg[TimeUsageRow](_.other), 1).as[Double])
           .map(r => TimeUsageRow(r._1._1, r._1._2, r._1._3, r._2, r._3, r._4))
           .sort("working", "sex", "age")
   }

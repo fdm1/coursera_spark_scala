@@ -122,17 +122,17 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
 
       val expectedData =
         Array(
-          Row("not working",  "female", "active",   11.0, 1.0,  7.0),
-          Row("not working",  "female", "elder",    7.0,  3.0,  6.0),
-          Row("not working",  "female", "young",    7.0,  4.0,  12.0),
-          Row("not working",  "male",   "active",   6.0,  3.0,  8.0),
-          Row("not working",  "male",   "elder",    5.0,  5.0,  10.0),
-          Row("working",      "female", "active",   8.0,  4.0,  17.0),
-          Row("working",      "female", "elder",    8.0,  3.0,  10.0),
-          Row("working",      "female", "young",    8.0,  4.0,  11.0),
-          Row("working",      "male",   "active",   9.0,  5.0,  10.0),
-          Row("working",      "male",   "elder",    3.0,  6.0,  2.0)
-        )
+          Row("not working",  "female", "active", 10.6, 1.1,  6.6),
+          Row("not working",  "female", "elder",  7.3,  2.9,  6.3),
+          Row("not working",  "female", "young",  7.5,  4.3,  12.5),
+          Row("not working",  "male",   "active", 5.6,  2.6,  7.8),
+          Row("not working",  "male",   "elder",  4.5,  5.1,  10.3),
+          Row("working",      "female", "active", 8.1,  4.1,  17.3),
+          Row("working",      "female", "elder",  8.0,  2.6,  9.7),
+          Row("working",      "female", "young",  8.3,  3.8,  11.2),
+          Row("working",      "male",   "active", 8.9,  4.5,  10.0),
+          Row("working",      "male",   "elder",  3.2,  6.0,  2.2)
+        ) 
 
       val dfData = sparkDf.collect
 
