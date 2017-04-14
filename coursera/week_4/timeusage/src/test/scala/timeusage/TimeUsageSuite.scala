@@ -23,15 +23,15 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
       val firstRow = initDf.first
       val expectedFirstRowList =
         List("\"1\"", 60.asInstanceOf[Double]
-                    , 2.asInstanceOf[Double]
-                    , 2.asInstanceOf[Double]
-                    , 0.asInstanceOf[Double]
+                    , 4.asInstanceOf[Double]
                     , 1.asInstanceOf[Double]
-                    , 1.asInstanceOf[Double]
-                    , 3.asInstanceOf[Double]
                     , 0.asInstanceOf[Double]
-                    , 5.asInstanceOf[Double]
-                    , 6.asInstanceOf[Double])
+                    , 0.asInstanceOf[Double]
+                    , 67.asInstanceOf[Double]
+                    , 302.asInstanceOf[Double]
+                    , 60.asInstanceOf[Double]
+                    , 239.asInstanceOf[Double]
+                    , 65.asInstanceOf[Double])
       assert(firstRow ==  Row.fromSeq(expectedFirstRowList))
     }
 
@@ -65,11 +65,11 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
     test("'classifiedColumns' correctly sorts activity columns") {
       val columnsToSort = List("tfoo", "tbar",
                                "t01234", "t01439", "t0398", "t112321", "t180132", "t180313",
-                               "t05237498", "t05132", "t1805123", "t18059",
-                               "t9999","t1234")
+                               "t05237498", "t05132", "t1805123", "t18059", 
+                               "t9999","t1234", "t0138", "t0145")
       val (a,b,c) = classifiedColumns(columnsToSort)
 
-      assert(a == List("t01234", "t01439", "t0398", "t112321", "t180132", "t180313").map(c => col(c)))
+      assert(a == List("t01234", "t01439", "t0398", "t112321", "t180132", "t180313", "t0138", "t0145").map(c => col(c)))
       assert(b == List("t05237498", "t05132", "t1805123", "t18059").map(c => col(c)))
       assert(c == List("t9999","t1234").map(c => col(c)))
     }
@@ -80,14 +80,28 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
       val summaryDf = timeUsageSummary(primaryNeedsColumns, workColumns, otherColumns, initDf)
       val expectedRows =
         Array(
-          Row("working","female","elder", 2.0/30, 1.0/12, 7.0/60),
-          Row("working","female","young", 2.0/15, 1.0/12, 15.0/100),
-          Row("working","female","young", 1.0/10, 1.0/12, 13.0/60),
-          Row("working","male","active", 1.0/60, 1.0/12, 1.0/4),
-          Row("working","male","active", 1.0/12, 1.0/12, 1.0/5),
-          Row("working","female","active", 2.0/30, 1.0/12, 13.0/60),
-          Row("working","male","young", 1.0/5, 1.0/12, 11.0/60),
-          Row("working","male","active", 7.0/60, 1.0/12, 13.0/60)
+          Row("not working",   "male",       "elder",   302.0/60,   239.0/60, 192.0/60),
+          Row("not working",   "male",       "elder",   239.0/60,   370.0/60, 1045.0/60),
+          Row("working",       "female",     "young",   299.0/60,   121.0/60, 373.0/60),
+          Row("working",       "female",     "young",   418.0/60,   367.0/60, 621.0/60),
+          Row("working",       "male",       "elder",   190.0/60,   358.0/60, 133.0/60),
+          Row("not working",   "male",       "active",  373.0/60,   129.0/60, 550.0/60),
+          Row("not working",   "female",     "young",   422.0/60,   359.0/60, 616.0/60),
+          Row("working",       "male",       "active",  554.0/60,   363.0/60, 623.0/60),
+          Row("working",       "male",       "active",  548.0/60,   186.0/60, 361.0/60),
+          Row("working",       "female",     "active",  786.0/60,   422.0/60, 1209.0/60),
+          Row("working",       "female",     "elder",   477.0/60,   131.0/60, 247.0/60),
+          Row("not working",   "male",       "active",  299.0/60,   177.0/60, 382.0/60),
+          Row("working",       "male",       "active",  305.0/60,   357.0/60, 796.0/60),
+          Row("not working",   "female",     "elder",   436.0/60,   176.0/60, 376.0/60),
+          Row("working",       "female",     "young",   785.0/60,   190.0/60, 1028.0/60),
+          Row("working",       "female",     "active",  184.0/60,   70.0/60,  864.0/60),
+          Row("not working",   "female",     "active",  484.0/60,   60.0/60,  549.0/60),
+          Row("not working",   "female",     "active",  785.0/60,   68.0/60,  247.0/60),
+          Row("not working",   "female",     "young",   551.0/60,   423.0/60, 848.0/60),
+          Row("not working",   "female",     "young",   368.0/60,   0.0/60,   784.0/60),
+          Row("working",       "female",     "elder",   479.0/60,   179.0/60, 916.0/60),
+          Row("working",       "male",       "active",  727.0/60,   180.0/60, 610.0/60)
         )
 
       val summaryRows = summaryDf.collect
