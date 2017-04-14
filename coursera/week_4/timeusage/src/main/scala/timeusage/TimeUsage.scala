@@ -115,19 +115,17 @@ object TimeUsage {
     */
 
   def classifiedColumns(columnNames: List[String]): (List[Column], List[Column], List[Column]) = {
-    val PRIMARY_COLUMNS = List("t01", "t03", "t11", "t1801", "t1803")
-    val WORKING_COLUMNS = List("t05", "t1805")
-
-    def toCol(l: List[String]): List[Column] = l.map(s => col(s))
-
-    val digits = "0123456789".split("").tail.toList
-
-    val primaryColumns = columnNames.filter(c => c.startsWith("t01") || c.startsWith("t03") || c.startsWith("t11") || c.startsWith("t1801") || c.startsWith("t1803"))
+    val primaryColumns = columnNames.filter(c => c.startsWith("t01") || c.startsWith("t03") || c.startsWith("t11") ||
+                                                 c.startsWith("t1801") || c.startsWith("t1803"))
     val workingColumns = columnNames.filter(c => c.startsWith("t05") || c.startsWith("t1805"))
-    val otherColumns = columnNames.filter(c => digits.contains(c(1).toString) && !primaryColumns.contains(c) && !workingColumns.contains(c))
+    val otherColumns = columnNames.filter(c => (c.startsWith("t02") || c.startsWith("t04") || c.startsWith("t06") ||
+                                               c.startsWith("t07") || c.startsWith("t08") || c.startsWith("t09") ||
+                                               c.startsWith("t10") || c.startsWith("t12") || c.startsWith("t13") ||
+                                               c.startsWith("t14") || c.startsWith("t15") || c.startsWith("t16") ||
+                                               c.startsWith("t18")) &&
+                                               (!primaryColumns.contains(c) && !workingColumns.contains(c)))
 
-    assert(primaryColumns.size + workingColumns.size + otherColumns.size == columnNames.filter(c => digits.contains(c(1).toString)).size)
-    (toCol(primaryColumns), toCol(workingColumns), toCol(otherColumns))
+    (primaryColumns.map(col(_)), workingColumns.map(col(_)), otherColumns.map(col(_)))
   }
 
 

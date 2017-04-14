@@ -22,22 +22,25 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
       val (columns, initDf) = read("/timeusage/atussum.csv")
       val firstRow = initDf.first
       val expectedFirstRowList =
-        List("\"1\"", 60.asInstanceOf[Double]
-                    , 4.asInstanceOf[Double]
-                    , 1.asInstanceOf[Double]
-                    , 0.asInstanceOf[Double]
-                    , 0.asInstanceOf[Double]
-                    , 67.asInstanceOf[Double]
-                    , 302.asInstanceOf[Double]
-                    , 60.asInstanceOf[Double]
-                    , 239.asInstanceOf[Double]
-                    , 65.asInstanceOf[Double])
+        List("\"1\"",
+             60.asInstanceOf[Double],
+             4.asInstanceOf[Double],
+             1.asInstanceOf[Double],
+             0.asInstanceOf[Double],
+             0.asInstanceOf[Double],
+             67.asInstanceOf[Double],
+             302.asInstanceOf[Double],
+             60.asInstanceOf[Double],
+             239.asInstanceOf[Double],
+             65.asInstanceOf[Double],
+             1.asInstanceOf[Double])
+  
       assert(firstRow ==  Row.fromSeq(expectedFirstRowList))
     }
 
     test("'dfSchema' generates correct schema") {
       val (columns, initDf) = read("/timeusage/atussum.csv")
-      assert(columns == List("tucaseid","teage","telfs","tesex","tfoo","t01","t02","t03","t18","t05","t07"))
+      assert(columns == List("tucaseid","teage","telfs","tesex","tfoo","t01","t02","t03","t18","t05","t07","t523"))
 
       val schema = StructType(Array(StructField("tucaseid",StringType,false),
                                     StructField("teage",DoubleType,false),
@@ -49,7 +52,8 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
                                     StructField("t03",DoubleType,false),
                                     StructField("t18",DoubleType,false),
                                     StructField("t05",DoubleType,false),
-                                    StructField("t07",DoubleType,false)))
+                                    StructField("t07",DoubleType,false),
+                                    StructField("t523",DoubleType,false)))
 
       assert(dfSchema(columns) == schema)
     }
@@ -65,13 +69,13 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
     test("'classifiedColumns' correctly sorts activity columns") {
       val columnsToSort = List("tfoo", "tbar",
                                "t01234", "t01439", "t0398", "t112321", "t180132", "t180313",
-                               "t05237498", "t05132", "t1805123", "t18059", 
-                               "t9999","t1234", "t0138", "t0145")
+                               "t05237498", "t05132", "t1805123", "t18059", "t10112",
+                               "t9999","t1234", "t0138", "t0145", "t5041", "t04123")
       val (a,b,c) = classifiedColumns(columnsToSort)
 
       assert(a == List("t01234", "t01439", "t0398", "t112321", "t180132", "t180313", "t0138", "t0145").map(c => col(c)))
       assert(b == List("t05237498", "t05132", "t1805123", "t18059").map(c => col(c)))
-      assert(c == List("t9999","t1234").map(c => col(c)))
+      assert(c == List("t10112", "t1234", "t04123").map(c => col(c)))
     }
     
     def getSummary(): DataFrame = {
