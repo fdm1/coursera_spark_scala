@@ -73,12 +73,17 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
       assert(b == List("t05237498", "t05132", "t1805123", "t18059").map(c => col(c)))
       assert(c == List("t9999","t1234").map(c => col(c)))
     }
-
-    test("'timeUsageSummary' aggregates all activites by age, gender, and employment") {
+    
+    def getSummary(): DataFrame = {
       val (columns, initDf) = read("/timeusage/atussum.csv")
       val (primaryNeedsColumns, workColumns, otherColumns) = classifiedColumns(columns)
       val summaryDf = timeUsageSummary(primaryNeedsColumns, workColumns, otherColumns, initDf)
-      val expectedRows =
+      summaryDf
+    }
+
+    test("'timeUsageSummary' aggregates all activites by age, gender, and employment") {
+      val summaryDf = getSummary
+      val expectedData =
         Array(
           Row("not working",   "male",       "elder",   302.0/60,   239.0/60, 192.0/60),
           Row("not working",   "male",       "elder",   239.0/60,   370.0/60, 1045.0/60),
@@ -104,10 +109,54 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
           Row("working",       "male",       "active",  727.0/60,   180.0/60, 610.0/60)
         )
 
-      val summaryRows = summaryDf.collect
+      val summaryData = summaryDf.collect
 
-      assert(summaryRows.size == expectedRows.size)
+      assert(summaryData.size == expectedData.size)
 
-      for (row <- expectedRows) { assert(summaryRows.contains(row)) }
+      for (row <- summaryData) { assert(expectedData.contains(row)) }
+    }
+
+    test("'timeUsageGrouped' aggregates correct average per working status, sex, and age") {
+      val summaryDf = getSummary
+      val sparkDf = timeUsageGrouped(summaryDf)
+
+      val expectedData =
+        Array(
+          Row("not working",  "female", "active",   11.0, 1.0,  7.0),
+          Row("not working",  "female", "elder",    7.0,  3.0,  6.0),
+          Row("not working",  "female", "young",    7.0,  4.0,  12.0),
+          Row("not working",  "male",   "active",   6.0,  3.0,  8.0),
+          Row("not working",  "male",   "elder",    5.0,  5.0,  10.0),
+          Row("working",      "female", "active",   8.0,  4.0,  17.0),
+          Row("working",      "female", "elder",    8.0,  3.0,  10.0),
+          Row("working",      "female", "young",    8.0,  4.0,  11.0),
+          Row("working",      "male",   "active",   9.0,  5.0,  10.0),
+          Row("working",      "male",   "elder",    3.0,  6.0,  2.0)
+        )
+
+      val dfData = sparkDf.collect
+
+      assert(dfData.size == expectedData.size)
+
+      for (row <- dfData) { assert(expectedData.contains(row)) }
+    }
+
+    test("'timeUsageGrouped', 'timeUsageGroupedSql', and 'timeUsageSummaryTyped' all output the same results") {
+      val summaryDf = getSummary
+      val sparkDf = timeUsageGrouped(summaryDf)
+      val sqlDf = timeUsageGroupedSql(summaryDf)
+      val typedDf = timeUsageGroupedTyped(timeUsageSummaryTyped(summaryDf))
+
+      val dfData = sparkDf.collect
+      val sqlData = sqlDf.collect
+      val typedData = typedDf.collect
+      val typedUntypedData = typedData.map(r => Row(r.working, r.sex, r.age, r.primaryNeeds, r.work, r.other))
+
+      assert(dfData.size == sqlData.size)
+      assert(dfData.size == typedData.size)
+      for (i <- dfData) {
+        assert(sqlData.contains(i))
+        assert(typedUntypedData.contains(i))
+      }
     }
 }
