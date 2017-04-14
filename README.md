@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/fdm1/coursera_spark_scala.svg?branch=master)](https://travis-ci.org/fdm1/coursera_spark_scala)
+
 Coursera - Big Data Analysis with Scala and Spark
 =================================================
 
